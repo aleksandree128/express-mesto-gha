@@ -6,7 +6,7 @@ const getCard = (req, res) => {
     .find({})
     .populate('owner')
     // eslint-disable-next-line no-shadow
-    .then((card) => res.send({ data: card }))
+    .then((card) => res.status(200).send({ data: card }))
     .catch(() => res.status(500).send({ message: 'Server error' }));
 };
 
@@ -21,7 +21,7 @@ const getDeleteCard = (res, req) => {
       if (!card) {
         return res.status(404).send({ message: 'Card not found' });
       }
-      return res.send({ data: card });
+      return res.status(200).send({ data: card });
     })
     .catch(() => res.status(500).send({ message: 'Server error' }));
 };
@@ -35,7 +35,7 @@ const createCard = (res, req) => {
   return card
     .create({ name, link, owner })
     // eslint-disable-next-line no-shadow
-    .then((card) => res.send({ data: card }))
+    .then((card) => res.status(200).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         const fields = Object.keys(err.errors).join(',');
@@ -60,7 +60,7 @@ const likeCard = (req, res) => {
       if (!card) {
         return res.status(404).send({ message: 'User not found' });
       }
-      return res.send({ data: card });
+      return res.status(200).send({ data: card });
     })
     .catch(() => res.status(500).send({ message: 'Server error' }));
 };
@@ -80,7 +80,7 @@ const disLikeCard = (req, res) => {
       if (!card) {
         return res.status(404).send({ message: ' User not found' });
       }
-      return res.send({ data: card });
+      return res.status(200).send({ data: card });
     })
     .catch(() => res.status(500).send({ message: 'Server error' }));
 };
