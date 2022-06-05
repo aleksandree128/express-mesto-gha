@@ -11,9 +11,9 @@ const getCard = (req, res) => {
 
 // eslint-disable-next-line consistent-return
 const getDeleteCard = (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+ /* if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
     return res.status(400).send({ message: 'Id is not correct' });
-  }
+  }*/
   card
     .findByIdAndRemove(req.params.cardId)
     // eslint-disable-next-line no-shadow,consistent-return
@@ -23,7 +23,13 @@ const getDeleteCard = (req, res) => {
       }
       res.send({ data: card });
     })
-    .catch(() => res.status(500).send({ message: 'Server error' }));
+    // eslint-disable-next-line consistent-return
+    .catch((err) => {
+      if (err.name === 'ObjectId') {
+        return res.status(400).send({ message: 'Id is not correct' });
+      }
+      res.status(500).send({ message: 'Server error' });
+    });
 };
 
 // eslint-disable-next-line consistent-return
@@ -48,9 +54,9 @@ const createCard = (req, res) => {
 
 // eslint-disable-next-line consistent-return
 const likeCard = (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+ /* if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
     return res.status(400).send({ message: 'Id is not correct' });
-  }
+  }*/
   card
     .findByIdAndUpdate(
       req.params.cardId,
@@ -64,14 +70,20 @@ const likeCard = (req, res) => {
       }
       res.send({ data: card });
     })
-    .catch(() => res.status(500).send({ message: 'Server error' }));
+    // eslint-disable-next-line consistent-return
+    .catch((err) => {
+      if (err.name === 'ObjectId') {
+        return res.status(400).send({ message: 'Id is not correct' });
+      }
+      res.status(500).send({ message: 'Server error' });
+    });
 };
 
 // eslint-disable-next-line consistent-return
 const disLikeCard = (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+  /*if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
     return res.status(400).send({ message: 'Id is not correct' });
-  }
+  }*/
   card
     .findByIdAndUpdate(
       req.params.cardId,
@@ -85,7 +97,13 @@ const disLikeCard = (req, res) => {
       }
       res.send({ data: card });
     })
-    .catch(() => res.status(500).send({ message: 'Server error' }));
+    // eslint-disable-next-line consistent-return
+    .catch((err) => {
+      if (err.name === 'ObjectId') {
+        return res.status(400).send({message: 'Id is not correct'});
+      }
+      res.status(500).send({ message: 'Server error' });
+    });
 };
 
 module.exports = {

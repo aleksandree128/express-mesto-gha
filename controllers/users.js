@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 const user = require('../models/user');
 
 const getUser = (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+  /*if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
     return res.status(400).send({ message: 'Id is is nor corrected' });
-  }
+  }*/
   return user
     .findById(req.params.userId)
     // eslint-disable-next-line no-shadow
