@@ -1,15 +1,13 @@
-const card = require("../models/card");
+const card = require('../models/card');
 
 const getCard = (req, res) => {
   card
     .find({})
-    .populate("owner")
+    .populate('owner')
     .then((card) => {
       res.send({ data: card });
     })
-    .catch(() => {
-      return res.status(500).send({ message: "Server error" });
-    });
+    .catch(() => res.status(500).send({ message: 'Server error' }));
 };
 
 const getDeleteCard = (res, req) => {
@@ -17,15 +15,15 @@ const getDeleteCard = (res, req) => {
     .findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ message: "Card not found" });
+        return res.status(404).send({ message: 'Card not found' });
       }
       res.send({ data: card });
     })
     .catch((err) => {
-      if (err.kind === "ObjectId") {
+      if (err.name === 'CastError') {
         return res.status(400).send({ message: "Id isn't correct" });
       }
-      return res.status(500).send({ message: "Server error" });
+      return res.status(500).send({ message: 'Server error' });
     });
 };
 
@@ -34,14 +32,12 @@ const createCard = (res, req) => {
 
   card
     .create({ name, link, owner: req.user._id })
-    .then((card) => {
-      return res.status(201).send(card);
-    })
+    .then((card) => res.status(201).send(card))
     .catch((err) => {
-      if (err.kind === "ObjectId") {
+      if (err.name === 'ValidationError') {
         return res.status(400).send({ message: "Id isn't correct" });
       }
-      return res.status(500).send({ message: "Server error" });
+      return res.status(500).send({ message: 'Server error' });
     });
 };
 
@@ -50,19 +46,19 @@ const likeCard = (req, res) => {
     .findByIdAndUpdate(
       req.params.cardId,
       { $addToSet: { likes: req.user._id } },
-      { new: true }
+      { new: true },
     )
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ message: "User not found" });
+        return res.status(404).send({ message: 'User not found' });
       }
-      return res.status(200).send(card);
+      return res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.kind === "ObjectId") {
+      if (err.name === 'CastError') {
         return res.status(400).send({ message: "Id isn't correct" });
       }
-      return res.status(500).send({ message: "Server error" });
+      return res.status(500).send({ message: 'Server error' });
     });
 };
 
@@ -71,20 +67,22 @@ const disLikeCard = (req, res) => {
     .findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } },
-      { new: true }
+      { new: true },
     )
     .then((card) => {
       if (!card) {
-        return res.status(404).send({ message: " User not found" });
+        return res.status(404).send({ message: ' User not found' });
       }
-      return res.status(200).send(card);
+      return res.status(200).send({ data: card });
     })
     .catch((err) => {
-      if (err.kind === "ObjectId") {
+      if (err.kind === 'CastError') {
         return res.status(400).send({ message: "Id isn't correct" });
       }
-      return res.status(500).send({ message: "Server error" });
+      return res.status(500).send({ message: 'Server error' });
     });
 };
 
-module.exports = { getCard, createCard, getDeleteCard, disLikeCard, likeCard };
+module.exports = {
+  getCard, createCard, getDeleteCard, disLikeCard, likeCard,
+};
