@@ -1,84 +1,97 @@
-const User = require('../models/user');
+const user = require("../models/user");
 
-module.exports.getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send({ data: users }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
-};
-
-module.exports.getUserById = (req, res) => {
-  User.findById(req.params.userId)
-    .then((users) => {
-      if (!users) {
-        res.status(404).send({ message: 'Пользователь не найден' });
-        return;
+const getUser = (req, res)=>{
+  const id = req.params.id
+  user.findById(id)
+    .then(user=>{
+      if(!user) {
+        return res.status(404).send({message:" User not found"})
       }
-      res.send({ data: users });
+      return res.status(200).send(user)
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'id неверен' });
-        return;
+    .catch(err=>{
+      if(err.kind==='ObjectId') {
+        return res.status(400).send({message:"Id isn't correct"})
       }
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
-};
+      return  res.status(500).send({message:"Server error"})
+    })
+}
 
-module.exports.createUsers = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => res.status(201).send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Неверные данные' });
-        return;
+const createUser = (req, res)=>{
+  const {name, age} = req.body
+
+  if(!age || !name) {
+    return res.status(404).send({message:"Age or Name no validated"})
+  }
+  user.create({name, age})
+    .then(user=>{
+      return res.status(201).send(user)
+
+    })
+    .catch(err=>{
+      if(err.name==='ValidationError') {
+        const fields = Object.keys(err.errors).join(', ')
+        return res.status(400).send({message:`${fields} are not correct`})
       }
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
-};
+      if(err.code===11000) {
+        return res.status(409).send({message: "Such use is already in database"})
+      }
+      return  res.status(500).send({message:"Server error"})
+    })
+}
 
-module.exports.updateUserInfo = (req, res) => {
-  const { name, about } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, about }, {
+const getUsers = (_, res)=>{
+  user.find({})
+    .then(users=>{
+      res.status(200).send(users)
+    })
+    .catch(err=>{
+      res.status(500).send({message:"Server error"})
+    })
+
+}
+
+const getUpdateUserInfo = (req, res)=>{
+  const {name, about} = req.body
+  user.findByIdAndUpdate(req.user._id, {name, about}, {
+    new: true,
+    runValidators: true,
+    upsert: false
+  })
+    .then( user=>{
+      if(!user) {
+        return res.status(404).send({message:" User not found"})
+      }
+    })
+    .catch(err=>{
+      if(err.name==='ValidationError') {
+        const fields = Object.keys(err.errors).join(', ')
+        return res.status(400).send({message:`date not correct`})
+      }
+      return  res.status(500).send({message:"Server error"})
+    })
+}
+
+const getUpdateUserAvatar = (req, res) =>{
+  const avatar = req.body
+  user.findByIdAndUpdate(req.user._id, avatar, {
     new: true,
     runValidators: true,
     upsert: false,
   })
-    .then((user) => {
-      if (!user) {
-        res.status(404).send({ message: 'Пользователь не найден' });
-        return;
+    .then( user=>{
+      if(!user) {
+        return res.status(404).send({message:'User not found'})
       }
-      res.send({ data: user });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Неверные данные' });
-        return;
+    .catch(err=>{
+      if(err.name==='ValidationError') {
+        const fields = Object.keys(err.errors).join(', ')
+        return res.status(400).send({message:'date not correct'})
       }
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
-};
+      return  res.status(500).send({message:'Server error'})
+    })
+}
 
-module.exports.updateUserAvatar = (req, res) => {
-  const { avatar } = req.body;
-  User.findByIdAndUpdate(req.user._id, { avatar }, {
-    new: true,
-    runValidators: true,
-    upsert: false,
-  })
-    .then((user) => {
-      if (!user) {
-        res.status(404).send({ message: 'Пользователь не найден' });
-        return;
-      }
-      res.send({ data: user });
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Неверные данные' });
-        return;
-      }
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
-};
+module.exports = {getUser, createUser, getUsers, getUpdateUserInfo, getUpdateUserAvatar}
+

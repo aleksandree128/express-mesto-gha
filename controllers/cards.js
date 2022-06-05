@@ -1,84 +1,85 @@
-const Card = require('../models/card');
+const card = require("../models/card");
 
-module.exports.getCards = (req, res) => {
-  Card.find({})
+const getCard = (res, req) =>{
+  card.find({})
     .populate('owner')
-    .then((card) => res.send({ data: card }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
-};
-
-module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => {
-      if (!card) {
-        res.status(404).send({ message: 'Карточка не найдена' });
-        return;
-      }
-      res.send({ data: card });
+    .then(card =>{
+      res.send({data: card})
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'id неверен' });
-        return;
+    .catch(()=>{
+      return  res.status(500).send({message:"Server error"})
+    })
+}
+
+const getDeleteCard = (res, req)=>{
+  card.findByIdAndRemove(req.params.cardId)
+    .then(card=>{
+      if(!card) {
+        return res.status(404).send({message:" Card not found"})
       }
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
-};
-
-module.exports.createCards = (req, res) => {
-  const { name, link } = req.body;
-
-  Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.status(201).send({ data: card }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Неверные данные' });
-        return;
+      res.send({data: card})
+    })
+    .catch(err=>{
+      if(err.kind==='ObjectId') {
+        return res.status(400).send({message:"Id isn't correct"})
       }
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
-};
+      return  res.status(500).send({message:"Server error"})
+    })
+}
 
-module.exports.likeCard = (req, res) => {
-  Card.findByIdAndUpdate(
+const createCard = (res, req)=>{
+  const {name, link} = req.body;
+
+  card.create({name, link, owner: req.user._id})
+    .then(card=>{
+      return res.status(201).send(card)
+    })
+    .catch(err=>{
+      if(err.kind==='ObjectId') {
+        return res.status(400).send({message:"Id isn't correct"})
+      }
+      return  res.status(500).send({message:"Server error"})
+    })
+}
+
+const likeCard = (req, res) =>{
+  card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        res.status(404).send({ message: 'Карточка не найдена' });
-        return;
+    .then(card=>{
+      if(!card) {
+        return res.status(404).send({message:" User not found"})
       }
-      res.send({ data: card });
+      return res.status(200).send(card)
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'id неверен' });
-        return;
+    .catch(err=>{
+      if(err.kind==='ObjectId') {
+        return res.status(400).send({message:"Id isn't correct"})
       }
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
-};
+      return  res.status(500).send({message:"Server error"})
+    })
+}
 
-module.exports.dislikeCard = (req, res) => {
-  Card.findByIdAndUpdate(
+const disLikeCard = (req, res) =>{
+  card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        res.status(404).send({ message: 'Карточка не найдена' });
-        return;
+    .then(card=>{
+      if(!card) {
+        return res.status(404).send({message:" User not found"})
       }
-      res.send({ data: card });
+      return res.status(200).send(card)
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'id не верен' });
-        return;
+    .catch(err=>{
+      if(err.kind==='ObjectId') {
+        return res.status(400).send({message:"Id isn't correct"})
       }
-      res.status(500).send({ message: 'Произошла ошибка' });
-    });
-};
+      return  res.status(500).send({message:"Server error"})
+    })
+}
+
+module.exports = {getCard, createCard, getDeleteCard, disLikeCard, likeCard}
