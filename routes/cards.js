@@ -11,6 +11,6 @@ router.get('/cards', getCard);
 router.post('/cards', createCard);
 router.delete('/cards/:cardId', getDeleteCard);
 router.delete('/cards/:cardId/likes', disLikeCard);
-router.patch('/cards/:cardId/likes', likeCard);
+router.put('/cards/:cardId/likes', likeCard);
 
 module.exports.cardRouter = router;

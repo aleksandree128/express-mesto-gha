@@ -38,7 +38,8 @@ const createCard = (res, req) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: "Id isn't correct" });
+        const fields = Object.keys(err.errors).join(',');
+        return res.status(400).send({ message: `${fields} is not corrected` });
       }
       return res.status(500).send({ message: 'Server error' });
     });
