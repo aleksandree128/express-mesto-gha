@@ -3,7 +3,7 @@ const card = require('../models/card');
 
 const getCard = (req, res) => {
   card
-    .find(req.params.cardId)
+    .find({})
     // eslint-disable-next-line no-shadow
     .then((card) => res.send({ data: card }))
     .catch(() => res.status(500).send({ message: 'Server error' }));
