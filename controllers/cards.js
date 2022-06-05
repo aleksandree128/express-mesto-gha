@@ -18,7 +18,7 @@ const getDeleteCard = (res, req) => {
     .findByIdAndRemove(req.params.cardId)
     // eslint-disable-next-line no-shadow,consistent-return
     .then((card) => {
-      if (!card) {
+      if (card === null) {
         return res.status(404).send({ message: 'Card not found' });
       }
       res.send({ data: card });
@@ -59,7 +59,7 @@ const likeCard = (req, res) => {
     )
     // eslint-disable-next-line no-shadow,consistent-return
     .then((card) => {
-      if (!card) {
+      if (card === null) {
         return res.status(404).send({ message: 'User not found' });
       }
       res.send({ data: card });
@@ -80,7 +80,7 @@ const disLikeCard = (req, res) => {
     )
     // eslint-disable-next-line no-shadow,consistent-return
     .then((card) => {
-      if (!card) {
+      if (card === null) {
         return res.status(404).send({ message: ' User not found' });
       }
       res.send({ data: card });
