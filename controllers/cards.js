@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const card = require('../models/card');
 
+// eslint-disable-next-line consistent-return
 const getCard = (req, res) => {
   card
-    .find({})
+    .findById(req.params.cardId)
     // eslint-disable-next-line no-shadow
     .then((card) => res.send({ data: card }))
     .catch(() => res.status(500).send({ message: 'Server error' }));
@@ -29,7 +30,7 @@ const getDeleteCard = (req, res) => {
 // eslint-disable-next-line consistent-return
 const createCard = (req, res) => {
   const { name, link } = req.body;
-  const owner = req.users._id;
+  const owner = req.user._id;
   if (!name || !link) {
     return res.status(400).send({ message: 'Error' });
   }
@@ -54,7 +55,7 @@ const likeCard = (req, res) => {
   card
     .findByIdAndUpdate(
       req.params.cardId,
-      { $addToSet: { likes: req.users._id } },
+      { $addToSet: { likes: req.user._id } },
       { new: true },
     )
     // eslint-disable-next-line no-shadow,consistent-return
@@ -75,7 +76,7 @@ const disLikeCard = (req, res) => {
   card
     .findByIdAndUpdate(
       req.params.cardId,
-      { $pull: { likes: req.users._id } },
+      { $pull: { likes: req.user._id } },
       {},
     )
     // eslint-disable-next-line no-shadow,consistent-return
