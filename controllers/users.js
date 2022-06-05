@@ -1,41 +1,32 @@
+const mongoose = require('mongoose');
 const user = require('../models/user');
 
 const getUser = (req, res) => {
-  const { id } = req.params;
-  user
-    .findById(id)
+  if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
+    return res.status(400).send({ message: 'Некорректный ID' });
+  }
+  return user
+    .findById(req.params.userId)
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: ' User not found' });
       }
-      return res.status(200).send(user);
+      return res.send({ data:user });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(400).send({ message: "Id isn't correct" });
-      }
-      return res.status(500).send({ message: 'Server error' });
-    });
+    .catch(() => res.status(500).send({ message: 'Server error' }));
 };
 
 const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
-
-  if (!about || !name || avatar) {
-    return res.status(404).send({ message: 'Age or Name or Avatar no validated' });
+  if (!name || !about || !avatar) {
+    return res.status(400).send({ message: 'Error name or about or avatar is nor corrected' });
   }
-  user
+  return user
     .create({ name, about, avatar })
-    .then((user) => res.status(201).send(user))
+    .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        const fields = Object.keys(err.errors).join(', ');
-        return res.status(400).send({ message: `${fields} are not correct` });
-      }
-      if (err.code === 11000) {
-        return res
-          .status(409)
-          .send({ message: 'Such use is already in database' });
+        return res.status(400).send({ message: 'are not correct' });
       }
       return res.status(500).send({ message: 'Server error' });
     });
@@ -45,9 +36,13 @@ const getUsers = (_, res) => {
   user
     .find({})
     .then((users) => {
-      res.status(200).send(users);
+      res.status(200).send({ data: users });
     })
-    .catch(() => {
+    .catch((err) => {
+      if (err.user === 'ValidationError') {
+        const fields = Object.keys(err.errors).join(',');
+        return res.status(400).send({ message: `${fields} user don't serch` });
+      }
       res.status(500).send({ message: 'Server error' });
     });
 };
@@ -61,7 +56,6 @@ const getUpdateUserInfo = (req, res) => {
       {
         new: true,
         runValidators: true,
-        upsert: false,
       },
     )
     .then((user) => {
@@ -71,7 +65,7 @@ const getUpdateUserInfo = (req, res) => {
       res.send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'ValidationError' || err.about === 'ValidationError') {
         return res.status(400).send({ message: 'date not correct' });
       }
       return res.status(500).send({ message: 'Server error' });
@@ -84,7 +78,6 @@ const getUpdateUserAvatar = (req, res) => {
     .findByIdAndUpdate(req.user._id, { avatar }, {
       new: true,
       runValidators: true,
-      upsert: false,
     })
     .then((user) => {
       if (!user) {
