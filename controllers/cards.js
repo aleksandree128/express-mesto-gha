@@ -25,7 +25,7 @@ const getDeleteCard = (req, res) => {
     })
     // eslint-disable-next-line consistent-return
     .catch((err) => {
-      if (err.name === 'ObjectId') {
+      if (err.name === 'CastError') {
         return res.status(400).send({ message: 'Id is not correct' });
       }
       res.status(500).send({ message: 'Server error' });
@@ -72,7 +72,7 @@ const likeCard = (req, res) => {
     })
     // eslint-disable-next-line consistent-return
     .catch((err) => {
-      if (err.name === 'ObjectId') {
+      if (err.name === 'CastError') {
         return res.status(400).send({ message: 'Id is not correct' });
       }
       res.status(500).send({ message: 'Server error' });
@@ -99,7 +99,7 @@ const disLikeCard = (req, res) => {
     })
     // eslint-disable-next-line consistent-return
     .catch((err) => {
-      if (err.name === 'ObjectId') {
+      if (err.name === 'CastError') {
         return res.status(400).send({message: 'Id is not correct'});
       }
       res.status(500).send({ message: 'Server error' });
