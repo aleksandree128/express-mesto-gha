@@ -10,7 +10,7 @@ const getCard = (req, res) => {
 };
 
 // eslint-disable-next-line consistent-return
-const getDeleteCard = (res, req) => {
+const getDeleteCard = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
     return res.status(400).send({ message: 'Id is not correct' });
   }
@@ -27,13 +27,13 @@ const getDeleteCard = (res, req) => {
 };
 
 // eslint-disable-next-line consistent-return
-const createCard = (res, req) => {
+const createCard = (req, res) => {
   const { name, link } = req.body;
-  const owner = req.user._id;
+  const owner = req.users._id;
   if (!name || !link) {
     return res.status(400).send({ message: 'Error' });
   }
-  card
+  return card
     .create({ name, link, owner })
     // eslint-disable-next-line no-shadow
     .then((card) => res.send({ data: card }))
@@ -54,7 +54,7 @@ const likeCard = (req, res) => {
   card
     .findByIdAndUpdate(
       req.params.cardId,
-      { $addToSet: { likes: req.user._id } },
+      { $addToSet: { likes: req.users._id } },
       { new: true },
     )
     // eslint-disable-next-line no-shadow,consistent-return
@@ -75,7 +75,7 @@ const disLikeCard = (req, res) => {
   card
     .findByIdAndUpdate(
       req.params.cardId,
-      { $pull: { likes: req.user._id } },
+      { $pull: { likes: req.users._id } },
       {},
     )
     // eslint-disable-next-line no-shadow,consistent-return
