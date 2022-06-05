@@ -3,15 +3,16 @@ const user = require('../models/user');
 
 const getUser = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
-    return res.status(400).send({ message: 'Некорректный ID' });
+    return res.status(400).send({ message: 'Id is is nor corrected' });
   }
   return user
     .findById(req.params.userId)
+    // eslint-disable-next-line no-shadow
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: ' User not found' });
       }
-      return res.send({ data:user });
+      return res.send({ data: user });
     })
     .catch(() => res.status(500).send({ message: 'Server error' }));
 };
@@ -23,6 +24,7 @@ const createUser = (req, res) => {
   }
   return user
     .create({ name, about, avatar })
+    // eslint-disable-next-line no-shadow
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -38,6 +40,7 @@ const getUsers = (_, res) => {
     .then((users) => {
       res.status(200).send({ data: users });
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.user === 'ValidationError') {
         const fields = Object.keys(err.errors).join(',');
@@ -58,6 +61,7 @@ const getUpdateUserInfo = (req, res) => {
         runValidators: true,
       },
     )
+    // eslint-disable-next-line consistent-return,no-shadow
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: ' User not found' });
@@ -79,6 +83,7 @@ const getUpdateUserAvatar = (req, res) => {
       new: true,
       runValidators: true,
     })
+    // eslint-disable-next-line consistent-return,no-shadow
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: 'User not found' });
