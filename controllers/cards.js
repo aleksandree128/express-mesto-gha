@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const card = require('../models/card');
 
 const getCard = (req, res) => {
@@ -11,9 +10,6 @@ const getCard = (req, res) => {
 
 // eslint-disable-next-line consistent-return
 const getDeleteCard = (req, res) => {
- /* if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    return res.status(400).send({ message: 'Id is not correct' });
-  }*/
   card
     .findByIdAndRemove(req.params.cardId)
     // eslint-disable-next-line no-shadow,consistent-return
@@ -54,9 +50,6 @@ const createCard = (req, res) => {
 
 // eslint-disable-next-line consistent-return
 const likeCard = (req, res) => {
- /* if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    return res.status(400).send({ message: 'Id is not correct' });
-  }*/
   card
     .findByIdAndUpdate(
       req.params.cardId,
@@ -81,9 +74,6 @@ const likeCard = (req, res) => {
 
 // eslint-disable-next-line consistent-return
 const disLikeCard = (req, res) => {
-  /*if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    return res.status(400).send({ message: 'Id is not correct' });
-  }*/
   card
     .findByIdAndUpdate(
       req.params.cardId,
@@ -100,7 +90,7 @@ const disLikeCard = (req, res) => {
     // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(400).send({message: 'Id is not correct'});
+        return res.status(400).send({ message: 'Id is not correct' });
       }
       res.status(500).send({ message: 'Server error' });
     });

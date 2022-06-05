@@ -1,21 +1,20 @@
-const mongoose = require('mongoose');
 const user = require('../models/user');
 
-const getUser = (req, res) => {
-  /*if (!mongoose.Types.ObjectId.isValid(req.params.userId)) {
-    return res.status(400).send({ message: 'Id is is nor corrected' });
-  }*/
-  return user
-    .findById(req.params.userId)
-    // eslint-disable-next-line no-shadow
-    .then((user) => {
-      if (!user) {
-        return res.status(404).send({ message: ' User not found' });
-      }
-      return res.send({ data: user });
-    })
-    .catch(() => res.status(500).send({ message: 'Server error' }));
-};
+const getUser = (req, res) => user
+  .findById(req.params.userId)
+// eslint-disable-next-line no-shadow
+  .then((user) => {
+    if (!user) {
+      return res.status(404).send({ message: ' User not found' });
+    }
+    return res.send({ data: user });
+  })
+  .catch((err) => {
+    if (err.name === 'CastError') {
+      return res.status(400).send({ message: 'Id is not correct' });
+    }
+    return res.status(500).send({ message: 'Server error' });
+  });
 
 const createUser = (req, res) => {
   const { name, about, avatar } = req.body;
