@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 const card = require('../models/card');
 
-// eslint-disable-next-line consistent-return
 const getCard = (req, res) => {
   card
-    .findById(req.params.cardId)
+    .find(req.params.cardId)
     // eslint-disable-next-line no-shadow
     .then((card) => res.send({ data: card }))
     .catch(() => res.status(500).send({ message: 'Server error' }));
