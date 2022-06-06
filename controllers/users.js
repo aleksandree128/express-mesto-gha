@@ -66,7 +66,7 @@ const updateUserInfo = (req, res) => {
       res.send({ data: users });
     })
     .catch((err) => {
-      if (err.name === 'CastError' || err.about === 'CastError') {
+      if (err.name === 'ValidationError' || err.about === 'ValidationError' || err._id === 'CastError') {
         res.status(400).send({ message: 'data not correct' });
         return;
       }
