@@ -11,7 +11,7 @@ const deleteCard = (req, res) => {
   card
     .findByIdAndRemove(req.params.cardId)
     .then((cards) => {
-      if (card === null) {
+      if (cards === null) {
         res.status(404).send({ message: 'Card not found' });
         return;
       }
@@ -50,7 +50,7 @@ const likeCard = (req, res) => {
       { new: true },
     )
     .then((cards) => {
-      if (card === null) {
+      if (cards === null) {
         res.status(404).send({ message: 'Card not found' });
         return;
       }
@@ -73,7 +73,7 @@ const disLikeCard = (req, res) => {
       { new: true },
     )
     .then((cards) => {
-      if (card === null) {
+      if (cards === null) {
         res.status(404).send({ message: ' Card not found' });
         return;
       }

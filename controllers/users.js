@@ -3,7 +3,7 @@ const user = require('../models/user');
 const getUser = (req, res) => user
   .findById(req.params.userId)
   .then((users) => {
-    if (!user) {
+    if (!users) {
       res.status(404).send({ message: ' User not found' });
       return;
     }
@@ -59,7 +59,7 @@ const updateUserInfo = (req, res) => {
       },
     )
     .then((users) => {
-      if (!user) {
+      if (!users) {
         res.status(404).send({ message: ' User not found' });
         return;
       }
@@ -82,7 +82,7 @@ const updateUserAvatar = (req, res) => {
       runValidators: true,
     })
     .then((users) => {
-      if (!user) {
+      if (!users) {
         res.status(404).send({ message: 'User not found' });
         return;
       }
