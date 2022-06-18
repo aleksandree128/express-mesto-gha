@@ -1,49 +1,41 @@
-const card = require('../models/card');
+const mongoose = require('mongoose');
+const Card = require('../models/card');
+const NotFoundErrors = require('../codes__errors/notFound-errors');
+const ReqErrors = require('../codes__errors/req-errors');
 
-const getCard = (req, res) => {
-  card
+const getCard = (req, res, next) => {
+  Card
     .find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(500).send({ message: 'Server error' }));
+    .catch((err) => next(err));
 };
 
-const deleteCard = (req, res) => {
-  card
+const deleteCard = (req, res, next) => {
+  Card
     .findByIdAndRemove(req.params.cardId)
-    .then((cards) => {
-      if (cards === null) {
-        res.status(404).send({ message: 'Card not found' });
-        return;
+    .then((card) => {
+      if (card === null) {
+        throw new NotFoundErrors('Card not found');
       }
-      res.send({ data: cards });
+      res.send({ data: card });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Id is not correct' });
-        return;
-      }
-      res.status(500).send({ message: 'Server error' });
-    });
+    .catch((err) => next(err));
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
-  card
+  if (!name || !link) {
+    throw new ReqErrors('data is not corrected');
+  }
+  return Card
     .create({ name, link, owner })
-    .then((cards) => res.send({ data: cards }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        const fields = Object.keys(err.errors).join(',');
-        res.status(400).send({ message: `${fields} is not corrected` });
-        return;
-      }
-      res.status(500).send({ message: 'Server error' });
-    });
+    .then((card) => res.send({ data: card }))
+    .catch((err) => next(err));
 };
 
-const likeCard = (req, res) => {
-  card
+const likeCard = (req, res, next) => {
+  Card
     .findByIdAndUpdate(
       req.params.cardId,
       { $addToSet: { likes: req.user._id } },
@@ -51,22 +43,19 @@ const likeCard = (req, res) => {
     )
     .then((cards) => {
       if (cards === null) {
-        res.status(404).send({ message: 'Card not found' });
+        NotFoundErrors('Card not found');
         return;
       }
       res.send({ data: cards });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Id is not correct' });
-        return;
-      }
-      res.status(500).send({ message: 'Server error' });
-    });
+    .catch((err) => next(err));
 };
 
-const disLikeCard = (req, res) => {
-  card
+const disLikeCard = (req, res, next) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
+    throw new ReqErrors('uncorrected ID');
+  }
+  return Card
     .findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } },
@@ -79,13 +68,7 @@ const disLikeCard = (req, res) => {
       }
       res.send({ data: cards });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Id is not correct' });
-        return;
-      }
-      res.status(500).send({ message: 'Server error' });
-    });
+    .catch((err) => next(err));
 };
 
 module.exports = {
