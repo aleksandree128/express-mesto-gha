@@ -4,7 +4,7 @@ const { errors, celebrate, Joi } = require('celebrate');
 const NotFoundErrors = require('./codes__errors/notFound-errors');
 const { userRouter } = require('./routes/users');
 const { cardRouter } = require('./routes/cards');
-const { createUsers, login } = require('./controllers/users');
+const { createUser, getLogin } = require('./controllers/users');
 const auth = require('./meddlewares/auth');
 
 const app = express();
@@ -19,7 +19,7 @@ app.post('/signin', celebrate({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
   }),
-}), login);
+}), getLogin);
 app.post('/signup', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
@@ -28,7 +28,7 @@ app.post('/signup', celebrate({
     about: Joi.string().min(2).max(30),
     avatar: Joi.string().regex(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.,~#?&//=!]*$)/),
   }),
-}), createUsers);
+}), createUser);
 app.use(auth);
 
 app.use('/', userRouter);
