@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const Card = require('../models/card');
 const NotFoundErrors = require('../codes__errors/notFound-errors');
 const ReqErrors = require('../codes__errors/req-errors');
@@ -78,10 +77,7 @@ const likeCard = (req, res, next) => {
 };
 
 const disLikeCard = (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    throw new ReqErrors('uncorrected ID');
-  }
-  return Card
+  Card
     .findByIdAndUpdate(
       req.params.cardId,
       { $pull: { likes: req.user._id } },
