@@ -28,7 +28,7 @@ const createCard = (req, res, next) => {
   if (!name || !link) {
     throw new ReqErrors('data is not corrected');
   }
-  return Card
+  Card
     .create({ name, link, owner })
     .then((card) => res.send({ data: card }))
     .catch((err) => next(err));
