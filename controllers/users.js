@@ -52,15 +52,20 @@ const createUser = (req, res, next) => {
 
 const getUsers = (req, res, next) => {
   User
-    .find({})
+    .findById(req.params.userId)
     .then((users) => {
       if (users === null) {
         throw new NotFoundErrors('Users not found');
-      } else {
-        return res.send({ data: users });
       }
+      return res.send({ data: users });
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ReqErrors('id неверен'));
+        return;
+      }
+      next(err);
+    });
 };
 
 const updateUserInfo = (req, res, next) => {
@@ -72,12 +77,22 @@ const updateUserInfo = (req, res, next) => {
       {
         new: true,
         runValidators: true,
+        upsert: false,
       },
     )
     .then((users) => {
+      if (users === null) {
+        throw new NotFoundErrors('Users not found');
+      }
       res.send({ data: users });
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ReqErrors('неверные данные'));
+        return;
+      }
+      next(err);
+    });
 };
 
 const updateUserAvatar = (req, res, next) => {
@@ -86,9 +101,21 @@ const updateUserAvatar = (req, res, next) => {
     .findByIdAndUpdate(req.user._id, { avatar }, {
       new: true,
       runValidators: true,
+      upsert: false,
     })
-    .then((users) => res.send({ data: users }))
-    .catch((err) => next(err));
+    .then((users) => {
+      if (users === null) {
+        throw new NotFoundErrors('Users not found');
+      }
+      res.send({ data: users });
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ReqErrors('неверные данные'));
+        return;
+      }
+      next(err);
+    });
 };
 
 const getLogin = (req, res, next) => {
@@ -113,7 +140,12 @@ const getLogin = (req, res, next) => {
         }),
       });
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      if (err.name === 'Error') {
+        next(new AuthErrors('Email или пароль неверны'));
+      }
+      next(err);
+    });
 };
 
 const getUserI = (req, res, next) => {
@@ -122,7 +154,7 @@ const getUserI = (req, res, next) => {
     { _id },
   )
     .then((newUser) => {
-      res.send(newUser);
+      res.status(200).send({ data: newUser });
     })
     .catch((err) => next(err));
 };

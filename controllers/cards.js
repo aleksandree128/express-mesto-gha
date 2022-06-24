@@ -12,12 +12,26 @@ const getCard = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   Card
-    .findByIdAndRemove(req.params.cardId)
+    .findById(req.params.cardId)
     .then((card) => {
       if (card === null) {
         throw new NotFoundErrors('Card not found');
       }
-      res.send({ data: card });
+      if (req.user._id === card.owner.toString()) {
+        Card.findByIdAndRemove(req.params.cardId)
+          .then(() => {
+            res.send({ data: card });
+          })
+          .catch((err) => {
+            if (err.name === 'CastError') {
+              next(new ReqErrors('неверные данные'));
+              return;
+            }
+            next(err);
+          });
+        return;
+      }
+      throw new ReqErrors('Невозможно удалить карту других пользователей');
     })
     .catch((err) => next(err));
 };
@@ -30,8 +44,14 @@ const createCard = (req, res, next) => {
   }
   Card
     .create({ name, link, owner })
-    .then((card) => res.send({ data: card }))
-    .catch((err) => next(err));
+    .then((card) => res.status(201).send({ data: card }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ReqErrors('неверные данные'));
+        return;
+      }
+      next(err);
+    });
 };
 
 const likeCard = (req, res, next) => {
@@ -48,7 +68,13 @@ const likeCard = (req, res, next) => {
       }
       res.send({ data: cards });
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ReqErrors('id неверен'));
+        return;
+      }
+      next(err);
+    });
 };
 
 const disLikeCard = (req, res, next) => {
@@ -68,7 +94,13 @@ const disLikeCard = (req, res, next) => {
       }
       res.send({ data: cards });
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ReqErrors('id неверен'));
+        return;
+      }
+      next(err);
+    });
 };
 
 module.exports = {
