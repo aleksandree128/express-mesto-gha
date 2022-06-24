@@ -3,7 +3,6 @@ const { celebrate, Joi } = require('celebrate');
 const {
   getUser,
   getUsers,
-  createUser,
   updateUserAvatar,
   updateUserInfo,
   getUserI,
@@ -13,9 +12,8 @@ router.get('/users/:userId', celebrate({
   params: Joi.object().keys({
     userId: Joi.string().hex().length(24),
   }),
-}), getUsers);
-router.post('/users', createUser);
-router.get('/users', getUser);
+}), getUser);
+router.get('/users', getUsers);
 router.patch('/users/me/avatar', celebrate({
   body: Joi.object().keys({
     avatar: Joi.string().required().pattern(/(https?:\/\/)(w{3}\.)?(((\d{1,3}\.){3}\d{1,3})|((\w-?)+\.([^\d][^\d])))(:\d{2,5})?((\/.+)+)?\/?#?/),

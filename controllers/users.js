@@ -120,25 +120,14 @@ const updateUserAvatar = (req, res, next) => {
 
 const getLogin = (req, res, next) => {
   const { email, password } = req.body;
-  User.findOne({ email }).select('+password')
-    .then((user) => {
-      if (!user) {
-        throw new AuthErrors('invalid user or password');
-      }
-      return bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) {
-            throw new AuthErrors('invalid user or password');
-          }
-          return user;
-        });
-    })
+  return User.findUserByCredentials(email, password)
     .then((data) => {
-      data.send({
-        token: jwt.sign({ _id: data._id }, 'some-secret-key', {
-          expiresIn: '7d',
-        }),
+      // создадим токен
+      const token = jwt.sign({ _id: data._id }, 'some-secret-key', {
+        expiresIn: '7d',
       });
+      // вернём токен
+      res.send({ token });
     })
     .catch((err) => {
       if (err.name === 'Error') {
