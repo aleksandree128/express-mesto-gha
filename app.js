@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { celebrate, Joi } = require('celebrate');
-const { errors } = require('celebrate');
+const { errors, celebrate, Joi } = require('celebrate');
 const NotFoundErrors = require('./codes__errors/notFound-errors');
 const { userRouter } = require('./routes/users');
 const { cardRouter } = require('./routes/cards');
@@ -11,9 +10,7 @@ const auth = require('./meddlewares/auth');
 const app = express();
 const { PORT = 3000 } = process.env;
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {
-  useNewUrlParser: true,
-});
+mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use(express.json());
 

@@ -6,7 +6,7 @@ const {
   createUser,
   updateUserAvatar,
   updateUserInfo,
-  getUserMe,
+  getUserI,
 } = require('../controllers/users');
 
 router.get('/users/:userId', celebrate({
@@ -27,6 +27,6 @@ router.patch('/users/me', celebrate({
     about: Joi.string().min(2).max(30),
   }),
 }), updateUserInfo);
-router.get('/users/me', getUserMe);
+router.get('/users/me', getUserI);
 
 module.exports.userRouter = router;
