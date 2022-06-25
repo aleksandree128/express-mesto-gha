@@ -3,20 +3,19 @@ const { celebrate, Joi } = require('celebrate');
 
 const {
   getUsers,
-  getUserById,
-  findUserMe,
+  getUser,
+  findUserI,
   updateUserInfo,
   updateUserAvatar,
 } = require('../controllers/users');
 
 router.get('/', getUsers);
-router.get('/me', findUserMe);
+router.get('/me', findUserI);
 router.get('/:userId', celebrate({
-  // валидируем параметры
   params: Joi.object().keys({
     userId: Joi.string().hex().length(24),
   }),
-}), getUserById);
+}), getUser);
 router.patch('/me', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),

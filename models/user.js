@@ -4,16 +4,16 @@ const isURL = require('validator/lib/isURL');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: { // у пользователя есть имя — опишем требования к имени в схеме:
-    type: String, // имя — это строка
-    minlength: 2, // минимальная длина имени — 2 символа
-    maxlength: 30, // а максимальная — 30 символов
+  name: {
+    type: String,
+    minlength: 2,
+    maxlength: 30,
     default: 'Жак-Ив Кусто',
   },
   about: {
-    type: String, // имя — это строка
-    minlength: 2, // минимальная длина имени — 2 символа
-    maxlength: 30, // а максимальная — 30 символов
+    type: String,
+    minlength: 2,
+    maxlength: 30,
     default: 'Исследователь',
   },
   avatar: {
@@ -53,7 +53,7 @@ userSchema.statics.findUserByCredentials = function (email, password) {
             return Promise.reject(new Error('Неправильные почта или пароль'));
           }
 
-          return user; // теперь user доступен
+          return user;
         });
     });
 };
