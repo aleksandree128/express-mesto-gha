@@ -27,7 +27,7 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     }))
-    .then(() => res.status(201).send({
+    .then(() => res.send({
       data: {
         name,
         about,
@@ -112,7 +112,7 @@ const updateUserAvatar = (req, res, next) => {
 const findUserI = (req, res, next) => {
   User.findById(req.user._id)
     .then((users) => {
-      res.status(200).send({ data: users });
+      res.send({ data: users });
     })
     .catch((err) => next(err));
 };
