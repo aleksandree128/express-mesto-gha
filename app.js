@@ -4,8 +4,6 @@ const { errors, Joi, celebrate } = require('celebrate');
 const { createUser, getlogin } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const NotFoundErrors = require('./code_errors/notFound-errors');
-const { userRouter } = require('./routes/users');
-const { cardRouter } = require('./routes/cards');
 
 const app = express();
 const { PORT = 3000 } = process.env;
@@ -31,8 +29,8 @@ app.post('/signup', celebrate({
 }), createUser);
 // заменить
 app.use(auth);
-app.use('/users', userRouter);
-app.use('/cards', cardRouter);
+app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
 
 app.use('/', (req, res, next) => {
   next(new NotFoundErrors('Sorry, Not found Error'));
