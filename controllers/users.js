@@ -1,18 +1,43 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const NotFoundErrors = require('../codes__errors/notFound-errors');
-const ReqErrors = require('../codes__errors/req-errors');
-const AuthErrors = require('../codes__errors/auth-errors');
-const ConflictedErrors = require('../codes__errors/conflicted-errors');
+const NotFoundError = require('../errors/NotFoundErr');
+const WrongDataError = require('../errors/WrongDataErr');
+const AuthorizationError = require('../errors/AuthorizationErr');
+const DuplikatError = require('../errors/DuplikatError');
 
-const getUser = (req, res, next) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
     .catch(next);
 };
 
-const createUser = (req, res, next) => {
+module.exports.getUserById = (req, res, next) => {
+  User.findById(req.params.userId)
+    .then((users) => {
+      if (!users) {
+        throw new NotFoundError('Пользователь не найден');
+      }
+      res.send({ data: users });
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new WrongDataError('id неверен'));
+        return;
+      }
+      next(err);
+    });
+};
+
+module.exports.findUserMe = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((users) => {
+      res.status(200).send({ data: users });
+    })
+    .catch((err) => next(err));
+};
+
+module.exports.createUsers = (req, res, next) => {
   const {
     name,
     about,
@@ -37,35 +62,18 @@ const createUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ReqErrors('неверные данные'));
+        next(new WrongDataError('неверные данные'));
         return;
       }
       if (err.code === 11000) {
-        next(new ConflictedErrors('Пользователь с таким адресом электронной почты уже существует'));
+        next(new DuplikatError('Пользователь с таким адресом электронной почты уже существует'));
         return;
       }
       next(err);
     });
 };
 
-const getUserById = (req, res, next) => {
-  User.findById(req.params.userId)
-    .then((users) => {
-      if (!users) {
-        throw new NotFoundErrors('Пользователь не найден');
-      }
-      res.send({ data: users });
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new ReqErrors('id неверен'));
-        return;
-      }
-      next(err);
-    });
-};
-
-const updateUserInfo = (req, res, next) => {
+module.exports.updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(req.user._id, { name, about }, {
     new: true,
@@ -74,20 +82,20 @@ const updateUserInfo = (req, res, next) => {
   })
     .then((user) => {
       if (!user) {
-        throw new NotFoundErrors('Пользователь не найден');
+        throw new NotFoundError('Пользователь не найден');
       }
       res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ReqErrors('неверные данные'));
+        next(new WrongDataError('неверные данные'));
         return;
       }
       next(err);
     });
 };
 
-const updateUserAvatar = (req, res, next) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(req.user._id, { avatar }, {
     new: true,
@@ -96,25 +104,25 @@ const updateUserAvatar = (req, res, next) => {
   })
     .then((user) => {
       if (!user) {
-        throw new NotFoundErrors('Пользователь не найден');
+        throw new NotFoundError('Пользователь не найден');
       }
       res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ReqErrors('неверные данные'));
+        next(new WrongDataError('неверные данные'));
         return;
       }
       next(err);
     });
 };
 
-const login = (req, res, next) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      // создадим токен
+    // создадим токен
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
 
       // вернём токен
@@ -122,26 +130,8 @@ const login = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'Error') {
-        next(new AuthErrors('Email или пароль неверны'));
+        next(new AuthorizationError('Email или пароль неверны'));
       }
       next(err);
     });
-};
-
-const findUserMe = (req, res, next) => {
-  User.findById(req.user._id)
-    .then((users) => {
-      res.status(200).send({ data: users });
-    })
-    .catch((err) => next(err));
-};
-
-module.exports = {
-  getUser,
-  createUser,
-  getUserById,
-  updateUserInfo,
-  updateUserAvatar,
-  login,
-  findUserMe,
 };

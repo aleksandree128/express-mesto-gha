@@ -2,14 +2,14 @@ const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 
 const {
-  getUser,
+  getUsers,
   getUserById,
   findUserMe,
   updateUserInfo,
   updateUserAvatar,
 } = require('../controllers/users');
 
-router.get('/', getUser);
+router.get('/', getUsers);
 router.get('/me', findUserMe);
 router.get('/:userId', celebrate({
   // валидируем параметры
