@@ -20,8 +20,9 @@ const userSchema = new mongoose.Schema({
     type: String, // имя — это строка
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
-      validator: (v) => isURL(v),
-      message: 'Некорректный формат ссылки',
+      validator: isURL.isURL({
+        message: 'Некорректный формат ссылки', protocol: ['http', 'https', 'ftp'],
+      }),
     },
   },
   email: {

@@ -12,8 +12,9 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: (v) => isURL(v),
-      message: 'Некорректный формат ссылки',
+      validator: isURL.isURL({
+        message: 'Некорректный формат ссылки', protocol: ['http', 'https', 'ftp'],
+      }),
     },
   },
   owner: {
@@ -23,6 +24,7 @@ const cardSchema = new mongoose.Schema({
   },
   likes: {
     type: [mongoose.Schema.Types.ObjectId],
+    ref: 'user',
     default: [],
   },
   createdAt: {
