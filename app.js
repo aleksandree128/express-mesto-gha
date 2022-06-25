@@ -2,8 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { errors, celebrate, Joi } = require('celebrate');
 const NotFoundErrors = require('./codes__errors/notFound-errors');
-const { userRouter } = require('./routes/users');
-const { cardRouter } = require('./routes/cards');
 const { createUser, getLogin } = require('./controllers/users');
 const auth = require('./meddlewares/auth');
 
@@ -31,9 +29,8 @@ app.post('/signup', celebrate({
 }), createUser);
 
 app.use(auth);
-
-app.use('/', userRouter);
-app.use('/', cardRouter);
+app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
 
 app.use('/', (req, res, next) => {
   next(new NotFoundErrors('Извините, страница не найдена'));

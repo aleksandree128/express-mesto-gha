@@ -7,9 +7,8 @@ const AuthErrors = require('../codes__errors/auth-errors');
 const ConflictedErrors = require('../codes__errors/conflicted-errors');
 
 const getUser = (req, res, next) => {
-  User
-    .find({})
-    .then((user) => res.send({ data: user }))
+  User.find({})
+    .then((users) => res.send({ data: users }))
     .catch(next);
 };
 
@@ -49,12 +48,11 @@ const createUser = (req, res, next) => {
     });
 };
 
-const getUsers = (req, res, next) => {
-  User
-    .findById(req.params.userId)
+const getUserById = (req, res, next) => {
+  User.findById(req.params.userId)
     .then((users) => {
-      if (users === null) {
-        throw new NotFoundErrors('Users not found');
+      if (!users) {
+        throw new NotFoundErrors('Пользователь не найден');
       }
       res.send({ data: users });
     })
@@ -69,21 +67,16 @@ const getUsers = (req, res, next) => {
 
 const updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
-  User
-    .findByIdAndUpdate(
-      req.user._id,
-      { name, about },
-      {
-        new: true,
-        runValidators: true,
-        upsert: false,
-      },
-    )
-    .then((users) => {
-      if (users === null) {
-        throw new NotFoundErrors('Users not found');
+  User.findByIdAndUpdate(req.user._id, { name, about }, {
+    new: true,
+    runValidators: true,
+    upsert: false,
+  })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundErrors('Пользователь не найден');
       }
-      res.send({ data: users });
+      res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -96,17 +89,16 @@ const updateUserInfo = (req, res, next) => {
 
 const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  User
-    .findByIdAndUpdate(req.user._id, { avatar }, {
-      new: true,
-      runValidators: true,
-      upsert: false,
-    })
-    .then((users) => {
-      if (users === null) {
-        throw new NotFoundErrors('Users not found');
+  User.findByIdAndUpdate(req.user._id, { avatar }, {
+    new: true,
+    runValidators: true,
+    upsert: false,
+  })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundErrors('Пользователь не найден');
       }
-      res.send({ data: users });
+      res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -117,33 +109,29 @@ const updateUserAvatar = (req, res, next) => {
     });
 };
 
-const getLogin = (req, res, next) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
-  User.findUserByCredentials(email, password)
-    .then((data) => {
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
       // создадим токен
-      const token = jwt.sign({ _id: data._id }, 'some-secret-key', {
-        expiresIn: '7d',
-      });
-      res.cookie('jwt', token, {
-        maxAge: 3600000 * 24 * 7,
-        httpOnly: true,
-      });
-      res
-        .status(200)
-        .send({ message: 'Вход выполнен' });
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+
+      // вернём токен
+      res.send({ token });
     })
     .catch((err) => {
       if (err.name === 'Error') {
         next(new AuthErrors('Email или пароль неверны'));
       }
+      next(err);
     });
 };
 
-const getUserI = (req, res, next) => {
+const findUserMe = (req, res, next) => {
   User.findById(req.user._id)
-    .then((newUser) => {
-      res.status(200).send({ data: newUser });
+    .then((users) => {
+      res.status(200).send({ data: users });
     })
     .catch((err) => next(err));
 };
@@ -151,9 +139,9 @@ const getUserI = (req, res, next) => {
 module.exports = {
   getUser,
   createUser,
-  getUsers,
+  getUserById,
   updateUserInfo,
   updateUserAvatar,
-  getLogin,
-  getUserI,
+  login,
+  findUserMe,
 };
