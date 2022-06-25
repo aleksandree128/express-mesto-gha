@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { urlRegex } = require('../utils');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -11,6 +10,12 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator(url) {
+        return /https?:\/\/[\w-]+.[a-z.]+[\/*[a-z#]+]?/gim.test(url);
+      },
+      message: 'Неккоректный url адрес',
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -28,5 +33,4 @@ const cardSchema = new mongoose.Schema({
   },
 });
 
-cardSchema.path('link').validate((val) => urlRegex.test(val), 'Некорректная ссылка');
 module.exports = mongoose.model('card', cardSchema);
