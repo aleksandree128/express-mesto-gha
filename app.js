@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { errors, celebrate, Joi } = require('celebrate');
 const NotFoundErrors = require('./codes__errors/notFound-errors');
-const { createUser, getLogin } = require('./controllers/users');
+const { createUser, login } = require('./controllers/users');
 const auth = require('./meddlewares/auth');
 
 const app = express();
@@ -17,7 +17,7 @@ app.post('/signin', celebrate({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
   }),
-}), getLogin);
+}), login);
 app.post('/signup', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
