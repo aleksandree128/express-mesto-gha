@@ -117,7 +117,7 @@ const updateUserAvatar = (req, res, next) => {
 
 const getLogin = (req, res, next) => {
   const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
+  User.findUserByCredentials(email, password)
     .then((data) => {
       // создадим токен
       const token = jwt.sign({ _id: data._id }, 'some-secret-key', {
