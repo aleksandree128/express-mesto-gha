@@ -38,10 +38,12 @@ const createUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new ReqErrors('are not correct');
+        next(new ReqErrors('неверные данные'));
+        return;
       }
       if (err.code === 11000) {
-        throw new ConflictedErrors('Users not found');
+        next(new ConflictedErrors('Пользователь с таким адресом электронной почты уже существует'));
+        return;
       }
       next(err);
     });
