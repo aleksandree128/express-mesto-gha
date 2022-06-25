@@ -4,14 +4,13 @@ const User = require('../models/user');
 const NotFoundErrors = require('../codes__errors/notFound-errors');
 const ReqErrors = require('../codes__errors/req-errors');
 const AuthErrors = require('../codes__errors/auth-errors');
-const ServerErrors = require('../codes__errors/server-errors');
 const ConflictedErrors = require('../codes__errors/conflicted-errors');
 
 const getUser = (req, res, next) => {
   User
     .find({})
     .then((user) => res.send({ data: user }))
-    .catch((err) => next(err));
+    .catch(next);
 };
 
 const createUser = (req, res, next) => {
@@ -29,15 +28,14 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     }))
-    .then((users) => {
-      const outUser = {
-        name: users.name,
-        about: users.about,
-        avatar: users.avatar,
-        _id: users._id,
-      };
-      res.send({ data: outUser });
-    })
+    .then(() => res.status(201).send({
+      data: {
+        name,
+        about,
+        avatar,
+        email,
+      },
+    }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         throw new ReqErrors('are not correct');
@@ -45,9 +43,8 @@ const createUser = (req, res, next) => {
       if (err.code === 11000) {
         throw new ConflictedErrors('Users not found');
       }
-      throw new ServerErrors('Server error');
-    })
-    .catch((err) => next(err));
+      next(err);
+    });
 };
 
 const getUsers = (req, res, next) => {
@@ -57,7 +54,7 @@ const getUsers = (req, res, next) => {
       if (users === null) {
         throw new NotFoundErrors('Users not found');
       }
-      return res.send({ data: users });
+      res.send({ data: users });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -126,22 +123,23 @@ const getLogin = (req, res, next) => {
       const token = jwt.sign({ _id: data._id }, 'some-secret-key', {
         expiresIn: '7d',
       });
-      // вернём токен
-      res.send({ token });
+      res.cookie('jwt', token, {
+        maxAge: 3600000 * 24 * 7,
+        httpOnly: true,
+      });
+      res
+        .status(200)
+        .send({ message: 'Вход выполнен' });
     })
     .catch((err) => {
       if (err.name === 'Error') {
         next(new AuthErrors('Email или пароль неверны'));
       }
-      next(err);
     });
 };
 
 const getUserI = (req, res, next) => {
-  const { _id } = req.user;
-  User.findOne(
-    { _id },
-  )
+  User.findById(req.user._id)
     .then((newUser) => {
       res.status(200).send({ data: newUser });
     })
