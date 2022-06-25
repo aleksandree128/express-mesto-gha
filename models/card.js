@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const isURL = require('validator/lib/isURL');
+const { urlRegex } = require('../utils');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -28,5 +28,5 @@ const cardSchema = new mongoose.Schema({
   },
 });
 
-cardSchema.path('link').validate((val) => isURL.test(val), 'Некорректная ссылка');
+cardSchema.path('link').validate((val) => urlRegex.test(val), 'Некорректная ссылка');
 module.exports = mongoose.model('card', cardSchema);

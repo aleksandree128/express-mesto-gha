@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const isEmail = require('validator/lib/isEmail');
 const bcrypt = require('bcryptjs');
-const isURL = require('validator/lib/isURL');
+const { urlRegex } = require('../utils');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.path('avatar').validate((val) => isURL.test(val), 'Некорректная ссылка');
+userSchema.path('avatar').validate((val) => urlRegex.test(val), 'Некорректная ссылка');
 
 userSchema.path('email').validate((val) => isEmail.isEmail(val), 'Некорректный email.');
 
