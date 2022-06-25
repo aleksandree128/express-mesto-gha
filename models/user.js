@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const isEmail = require('validator/lib/isEmail');
-const isURL = require('validator/lib/isURL');
 const bcrypt = require('bcryptjs');
+const isURL = require('validator/lib/isURL');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -19,20 +19,11 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String, // имя — это строка
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
-    validate: {
-      validator: isURL.isURL({
-        message: 'Некорректный формат ссылки', protocol: ['http', 'https', 'ftp'],
-      }),
-    },
   },
   email: {
     type: String,
     required: true,
     unique: true,
-    validate: {
-      validator: (v) => isEmail(v),
-      message: 'Неправильный формат почты',
-    },
   },
   password: {
     type: String,
@@ -40,6 +31,10 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 });
+
+userSchema.path('avatar').validate((val) => isURL.test(val), 'Некорректная ссылка');
+
+userSchema.path('email').validate((val) => isEmail.isEmail(val), 'Некорректный email.');
 
 userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')

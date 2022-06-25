@@ -11,11 +11,6 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
-    validate: {
-      validator: isURL.isURL({
-        message: 'Некорректный формат ссылки', protocol: ['http', 'https', 'ftp'],
-      }),
-    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -32,4 +27,6 @@ const cardSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+cardSchema.path('link').validate((val) => isURL.test(val), 'Некорректная ссылка');
 module.exports = mongoose.model('card', cardSchema);
