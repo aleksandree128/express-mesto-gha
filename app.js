@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { errors, Joi, celebrate } = require('celebrate');
 const { createUser, getlogin } = require('./controllers/users');
+const cors = require('cors');
 const auth = require('./middlewares/auth');
 const NotFoundErrors = require('./code_errors/notFound-errors');
 
@@ -10,7 +11,10 @@ const { PORT = 3000 } = process.env;
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-app.use(express.json());
+app.use('*', cors({
+  origin: 'https://mesto-korshinov.nomoredomains.xyz',
+  credentials: true,
+}));
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
