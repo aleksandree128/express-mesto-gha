@@ -1,16 +1,46 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const { errors, Joi, celebrate } = require('celebrate');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const { createUser, getlogin } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const NotFoundErrors = require('./code_errors/notFound-errors');
+const { requestLogger, errorLogger } = require('./middlewares/loggers');
 
 const app = express();
 const { PORT = 3000 } = process.env;
 
-mongoose.connect('mongodb://localhost:27017/mestodb');
+mongoose.connect('mongodb://localhost:27017/mestodb', {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useFindAndModify: false,
+  useUnifiedTopology: true,
+});
+
+app.use('*', cors({
+  origin: 'https://mesto-korshinov.nomoredomains.xyz',
+  credentials: true,
+}));
+
+app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(requestLogger);
 
 app.use(express.json());
+
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
+
+app.use(errorLogger);
+app.use(errors());
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
@@ -35,8 +65,6 @@ app.use('/cards', require('./routes/cards'));
 app.use('/', (req, res, next) => {
   next(new NotFoundErrors('Sorry, Not found Error'));
 });
-
-app.use(errors());
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
