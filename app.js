@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { createUser, getlogin } = require('./controllers/users');
+const cors = require('cors');
 const auth = require('./middlewares/auth');
 const NotFoundErrors = require('./code_errors/notFound-errors');
 const { requestLogger, errorLogger } = require('./middlewares/loggers');
@@ -40,7 +41,10 @@ app.get('/crash-test', () => {
 });
 
 app.use(errorLogger);
+<<<<<<< HEAD
 app.use(errors());
+=======
+>>>>>>> a88e8b115a1941692cc8f1bd125e754f67690bc0
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
