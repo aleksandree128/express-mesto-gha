@@ -1,12 +1,12 @@
-require('dotenv').config();
 const express = require('express');
+const helmet = require('helmet');
+require('dotenv').config();
+const cors = require('cors');
 const mongoose = require('mongoose');
 const { errors, Joi, celebrate } = require('celebrate');
 const bodyParser = require('body-parser');
-const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { createUser, getlogin } = require('./controllers/users');
-const cors = require('cors');
 const auth = require('./middlewares/auth');
 const NotFoundErrors = require('./code_errors/notFound-errors');
 const { requestLogger, errorLogger } = require('./middlewares/loggers');
@@ -16,16 +16,10 @@ const { PORT = 3000 } = process.env;
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
-  useUnifiedTopology: true,
 });
 
-app.use('*', cors({
-  origin: 'https://mesto-korshinov.nomoredomains.xyz',
-  credentials: true,
-}));
-
+app.use(helmet());
+app.use(cors());
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -41,10 +35,6 @@ app.get('/crash-test', () => {
 });
 
 app.use(errorLogger);
-<<<<<<< HEAD
-app.use(errors());
-=======
->>>>>>> a88e8b115a1941692cc8f1bd125e754f67690bc0
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
@@ -69,6 +59,8 @@ app.use('/cards', require('./routes/cards'));
 app.use('/', (req, res, next) => {
   next(new NotFoundErrors('Sorry, Not found Error'));
 });
+
+app.use(errors());
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
