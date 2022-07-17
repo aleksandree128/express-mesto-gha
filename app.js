@@ -12,14 +12,24 @@ const NotFoundErrors = require('./code_errors/notFound-errors');
 const { requestLogger, errorLogger } = require('./middlewares/loggers');
 
 const app = express();
-const { PORT = 3000 } = process.env;
+const { PORT = 3001 } = process.env;
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
 });
 
+const options = {
+  origin: [
+    'http://localhost:3001',
+    'http://http://mesto-korshinov.nomoredomains.xyz',
+    'https://http://mesto-korshinov.nomoredomains.xyz',
+  ],
+  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+}
+
 app.use(helmet());
-app.use(cors());
+app.use('*', cors(options));
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
