@@ -1,32 +1,24 @@
 require('dotenv').config();
 const express = require('express');
-const helmet = require('helmet');
-const mongoose = require('mongoose');
-const { errors, Joi, celebrate } = require('celebrate');
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const cors = require('./middlewares/cors');
-const { createUser, getlogin } = require('./controllers/users');
+const mongoose = require('mongoose');
+const { celebrate, Joi, errors } = require('celebrate');
 const auth = require('./middlewares/auth');
-const NotFoundErrors = require('./code_errors/notFound-errors');
-const { requestLogger, errorLogger } = require('./middlewares/loggers');
+const NotFoundError = require('./errors/NotFoundError');
+const centralError = require('./middlewares/centralError');
+const { login, createUser } = require('./controllers/users');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
+const cors = require('./middlewares/cors');
 
 const { PORT = 3001 } = process.env;
 const app = express();
 app.use(cors);
+mongoose.connect('mongodb://localhost:27017/mestodb');
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {
-  useNewUrlParser: true,
-});
-
-app.use(helmet());
-app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(requestLogger);
-
-app.use(express.json());
 
 app.get('/crash-test', () => {
   setTimeout(() => {
@@ -34,46 +26,32 @@ app.get('/crash-test', () => {
   }, 0);
 });
 
-app.use(errorLogger);
-
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
   }),
-}), getlogin);
+}), login);
+
 app.post('/signup', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().regex(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.,~#?&//=!]*$)/),
+    avatar: Joi.string().pattern(/^https?:\/\/(www\.)?[a-zA-Z\d-]+\.[\w\d\-.~:/?#[\]@!$&'()*+,;=]{2,}#?$/),
   }),
 }), createUser);
-// заменить
+
 app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
-app.use('/', (req, res, next) => {
-  next(new NotFoundErrors('Sorry, Not found Error'));
+app.use('*', () => {
+  throw new NotFoundError('Не найдено');
 });
-
+app.use(errorLogger);
 app.use(errors());
+app.use(centralError);
 
-app.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
-  res.status(statusCode)
-    .send({
-    // проверяем статус и выставляем сообщение в зависимости от него
-      message: statusCode === 500
-        ? 'На сервере произошла ошибка'
-        : message,
-    });
-  next();
-});
-
-app.listen(PORT, () => {
-  console.log('Server start');
-});
+app.listen(PORT);

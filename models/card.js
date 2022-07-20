@@ -1,32 +1,30 @@
 const mongoose = require('mongoose');
+const validator = require('validator');
 
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
-    minlength: 2,
-    maxlength: 30,
+    required: [true, 'Обязательное поле для заполнения'],
+    minlength: [2, 'Минимальная длина 2 символа'],
+    maxlength: [30, 'Максимальная для 30 символов'],
   },
   link: {
     type: String,
-    required: true,
-    validate: {
-      validator(url) {
-        return /https?:\/\/[\w-]+.[a-z.]+[\/*[a-z#]+]?/gim.test(url);
-      },
-      message: 'Неккоректный url адрес',
-    },
+    required: [true, 'Обязательное поле для заполнения'],
+    validate: [validator.isURL, 'Некорректный URL адрес'],
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',
     required: true,
   },
-  likes: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: 'user',
-    default: [],
-  },
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+      default: [],
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,
