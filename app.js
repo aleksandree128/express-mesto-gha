@@ -1,80 +1,79 @@
-const mongoose = require('mongoose');
 require('dotenv').config();
 const express = require('express');
-const { celebrate, Joi } = require('celebrate');
-const { errors } = require('celebrate');
-const { userRouter } = require('./routes/user');
-const { cardRouter } = require('./routes/card');
+const helmet = require('helmet');
+const mongoose = require('mongoose');
+const { errors, Joi, celebrate } = require('celebrate');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const cors = require('./middlewares/cors');
+const { createUser, getlogin } = require('./controllers/users');
 const auth = require('./middlewares/auth');
-const { urlRegex } = require('./utils');
-const NotFoundError = require('./errors/not-found-err');
+const NotFoundErrors = require('./code_errors/notFound-errors');
+const { requestLogger, errorLogger } = require('./middlewares/loggers');
 
-const { requestLogger, errorLogger } = require('./middlewares/logger');
-
+const { PORT = 3001 } = process.env;
 const app = express();
-const { PORT = 3000 } = process.env;
-const { createUser, login } = require('./controllers/users');
+app.use(cors);
 
-app.use(express.json());
-// app.use(cors(corsOptions))
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Methods', '*');
-
-  if (req.method === 'OPTIONS') {
-    return res.send();
-  }
-  return next();
+mongoose.connect('mongodb://localhost:27017/mestodb', {
+  useNewUrlParser: true,
 });
 
+app.use(helmet());
+app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(requestLogger);
+
+app.use(express.json());
+
 app.get('/crash-test', () => {
   setTimeout(() => {
     throw new Error('Сервер сейчас упадёт');
   }, 0);
 });
+
+app.use(errorLogger);
+
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
   }),
-}), login);
-
+}), getlogin);
 app.post('/signup', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
-    name: Joi.string().optional().min(2).max(30),
-    about: Joi.string().optional().min(2).max(30),
-    avatar: Joi.string().pattern(urlRegex).allow('').optional(),
-
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().regex(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.,~#?&//=!]*$)/),
   }),
 }), createUser);
+// заменить
+app.use(auth);
+app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
 
-app.use('/', auth, userRouter);
-app.use('/', auth, cardRouter);
-app.use('/', auth, (req, res, next) => {
-  next(new NotFoundError('Маршрут не найден'));
+app.use('/', (req, res, next) => {
+  next(new NotFoundErrors('Sorry, Not found Error'));
 });
 
-app.use(errorLogger); // подключаем логгер ошибок
 app.use(errors());
+
 app.use((err, req, res, next) => {
-  // если у ошибки нет статуса, выставляем 500
   const { statusCode = 500, message } = err;
   res.status(statusCode)
     .send({
-      // проверяем статус и выставляем сообщение в зависимости от него
-      message,
+    // проверяем статус и выставляем сообщение в зависимости от него
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
     });
   next();
 });
 
-mongoose.connect('mongodb://localhost:27017/mestodb', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
 app.listen(PORT, () => {
-  console.log('Сервер запущен');
+  console.log('Server start');
 });

@@ -1,80 +1,98 @@
-const mongoose = require('mongoose');
-const card = require('../models/card');
-const NotFoundError = require('../errors/not-found-err');
-const RequestErr = require('../errors/request-err');
-const ForbiddenErr = require('../errors/forbidden-err');
+const Card = require('../models/card');
+const NotFoundErrors = require('../code_errors/notFound-errors');
+const ReqErrors = require('../code_errors/req-errors');
+const ForbiddenErrors = require('../code_errors/forbidden-errors');
 
 const getCards = (req, res, next) => {
-  card.find({})
-    .then((cards) => res.send(cards))
+  Card.find({})
+    .populate('owner')
+    .then((card) => res.send({ data: card }))
     .catch((err) => next(err));
 };
 
-const createCards = (req, res, next) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
-  const owner = req.user;
-  if (!name || !link) {
-    throw new RequestErr('Данные карточки заполненны не полностью');
-  }
-  return card.create({ name, link, owner })
-    .then((newCard) => res.send(newCard))
+  Card.create({ name, link, owner: req.user._id })
+    .then((card) => res.send({ data: card }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ReqErrors('incorrect data'));
+        return;
+      }
+      next(err);
+    });
+};
+
+const deleteCard = (req, res, next) => {
+  Card.findById(req.params.cardId).then((card) => {
+    if (card === null) {
+      throw new NotFoundErrors('Card not found');
+    }
+    if (req.user._id === card.owner.toString()) {
+      Card.findByIdAndRemove(req.params.cardId)
+        .then(() => {
+          res.send({ data: card });
+        })
+        .catch((err) => {
+          if (err.name === 'CastError') {
+            next(new ReqErrors('incorrect data'));
+            return;
+          }
+          next(err);
+        });
+      return;
+    }
+    throw new ForbiddenErrors('It is not possible to delete the card of other users');
+  })
     .catch((err) => next(err));
 };
 
-async function deleteCard(req, res, next) {
-  card.findOne({ _id: req.params.cardId })
-    .then((thisCard) => {
-      if (!thisCard) {
-        throw new NotFoundError('Карточка не найдена');
-      } else if (!thisCard.owner._id.equals(req.user._id)) {
-        throw new ForbiddenErr('Чужая карточка');
+const likeCard = (req, res, next) => {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
+    .then((cards) => {
+      if (cards === null) {
+        throw new NotFoundErrors('Card not found');
       }
-      return card.findByIdAndRemove(req.params.cardId)
-        .then((newCard) => {
-          if (newCard === null) {
-            throw new NotFoundError('Карточка не найдена');
-          }
-          res.send({ newCard });
-        });
+      res.send({ data: cards });
     })
-    .catch((err) => next(err));
-}
-
-const likeCard = (req, res, next) => card.findByIdAndUpdate(
-  req.params.cardId,
-  { $addToSet: { likes: req.user._id } },
-  { new: true },
-)
-  .then((likes) => {
-    if (likes === null) {
-      throw new NotFoundError('Карточка не найдена');
-    }
-    return res.send(likes);
-  })
-  .catch((err) => next(err));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ReqErrors('id incorrect'));
+        return;
+      }
+      next(err);
+    });
+};
 
 const dislikeCard = (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.cardId)) {
-    throw new RequestErr('Некорректный ID');
-  }
-  return card.findByIdAndUpdate(
+  Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((likes) => {
-      if (likes === null) {
-        throw new NotFoundError('Карточка не найдена');
+    .then((cards) => {
+      if (cards === null) {
+        throw new NotFoundErrors('Card not found');
       }
-      return res.send(likes);
+      res.send({ data: cards });
     })
-    .catch((err) => next(err));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ReqErrors('id incorrect'));
+        return;
+      }
+      next(err);
+    });
 };
 
 module.exports = {
   getCards,
-  createCards,
+  createCard,
   deleteCard,
-  likeCard,
   dislikeCard,
+  likeCard,
 };
